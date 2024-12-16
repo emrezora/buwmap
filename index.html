@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Waste Bin Locator</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://ar-js-org.github.io/AR.js/aframe/build/aframe-ar.js"></script>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+    <a-scene id="scene" vr-mode-ui="enabled: false" arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;">
+
+        <!-- Waste Bin Location 1 -->
+        <a-image id="WasteBin1" src="wastebin.jpg" look-at="[gps-camera]" scale="5 5 5"
+            gps-entity-place="latitude: 40.9901; longitude: 29.0230;" position="0 2 0"
+            animation="property: rotation; to: 0 360 0; loop: true; dur: 5000"></a-image>
+        <a-text id="WasteBin1-distance" look-at="[gps-camera]" color="white" scale="5 5 5"
+            gps-entity-place="latitude: 40.9901; longitude: 29.0230;" position="0 -2 0"></a-text>
+
+        <!-- Waste Bin Location 2 -->
+        <a-image id="WasteBin2" src="wastebin.jpg" look-at="[gps-camera]" scale="5 5 5"
+            gps-entity-place="latitude: 40.9920; longitude: 29.0245;" position="0 2 0"
+            animation="property: rotation; to: 0 360 0; loop: true; dur: 5000"></a-image>
+        <a-text id="WasteBin2-distance" look-at="[gps-camera]" color="white" scale="5 5 5"
+            gps-entity-place="latitude: 40.9920; longitude: 29.0245;" position="0 -2 0"></a-text>
+
+        <!-- Camera -->
+        <a-camera gps-camera rotation-reader></a-camera>
+
+    </a-scene>
+
+    <script>
+        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of Earth in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c * 1000; // Convert to meters
+            return distance;
+        }
+
+        function updateDistances() {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                const userLat = position.coords.latitude;
+                const userLon = position.coords.longitude;
+
+                document.querySelectorAll('[gps-entity-place]').forEach(function (entity) {
+                    const placeLat = parseFloat(entity.getAttribute('gps-entity-place').latitude);
+                    const placeLon = parseFloat(entity.getAttribute('gps-entity-place').longitude);
+                    const distance = getDistanceFromLatLonInKm(userLat, userLon, placeLat, placeLon).toFixed(2);
+
+                    const distanceText = document.getElementById(entity.id + "-distance");
+                    if (distanceText) {
+                        distanceText.setAttribute('value', `Distance: ${distance} meters`);
+                    }
+
+                    const baseScale = 5;
+                    const scaleFactor = Math.max(1, 500 / distance); // Scale inversely proportional to distance
+                    entity.setAttribute('scale', `${baseScale * scaleFactor} ${baseScale * scaleFactor} ${baseScale * scaleFactor}`);
+                });
+            }, function (error) {
+                console.error('Error obtaining location', error);
+            }, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            });
+        }
+
+        // Update distances every second
+        setInterval(updateDistances, 1000);
+    </script>
+</body>
+
+</html>
