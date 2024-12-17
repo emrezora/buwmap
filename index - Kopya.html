@@ -10,7 +10,7 @@
 
 <body style="margin: 0; overflow: hidden;">
     <a-scene id="scene" vr-mode-ui="enabled: false" arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;">
-        
+
         <!-- Waste Bin Location 1 -->
         <a-image id="WasteBin1" src="wastebin.jpg" look-at="[gps-camera]" scale="5 5 5"
             gps-entity-place="latitude: 41.017993394760744; longitude: 28.91692619501663;" position="0 2 0"
@@ -81,39 +81,6 @@
 
         // Update distances every second
         setInterval(updateDistances, 1000);
-
-        // Pinch-to-Zoom handling
-        let pinchStartDist = 0;
-        let pinchStartScale = 1;
-
-        function getDistanceBetweenTouches(touch1, touch2) {
-            const dx = touch2.pageX - touch1.pageX;
-            const dy = touch2.pageY - touch1.pageY;
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-
-        document.body.addEventListener('touchstart', function (event) {
-            if (event.touches.length === 2) {
-                pinchStartDist = getDistanceBetweenTouches(event.touches[0], event.touches[1]);
-                pinchStartScale = parseFloat(document.querySelector('#WasteBin1').getAttribute('scale').x);
-            }
-        });
-
-        document.body.addEventListener('touchmove', function (event) {
-            if (event.touches.length === 2) {
-                const pinchEndDist = getDistanceBetweenTouches(event.touches[0], event.touches[1]);
-                const pinchScale = (pinchEndDist / pinchStartDist) * pinchStartScale;
-                document.querySelectorAll('a-image').forEach(function (entity) {
-                    entity.setAttribute('scale', `${pinchScale} ${pinchScale} ${pinchScale}`);
-                });
-            }
-        });
-
-        document.body.addEventListener('touchend', function (event) {
-            if (event.touches.length < 2) {
-                pinchStartDist = 0;
-            }
-        });
     </script>
 </body>
 
